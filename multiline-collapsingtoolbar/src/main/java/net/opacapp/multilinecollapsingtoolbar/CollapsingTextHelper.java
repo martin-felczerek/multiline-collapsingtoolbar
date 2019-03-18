@@ -26,11 +26,11 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.Build;
-import android.support.annotation.ColorInt;
-import android.support.v4.math.MathUtils;
-import android.support.v4.text.TextDirectionHeuristicsCompat;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewCompat;
+import androidx.annotation.ColorInt;
+import androidx.core.math.MathUtils;
+import androidx.core.text.TextDirectionHeuristicsCompat;
+import androidx.core.view.GravityCompat;
+import androidx.core.view.ViewCompat;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
@@ -43,11 +43,6 @@ import android.view.animation.Interpolator;
 // END MODIFICATION
 
 final class CollapsingTextHelper {
-
-    // Pre-JB-MR2 doesn't support HW accelerated canvas scaled text so we will workaround it
-    // by using our own texture
-    private static final boolean USE_SCALING_TEXTURE = Build.VERSION.SDK_INT < 18;
-
     private static final boolean DEBUG_DRAW = false;
     private static final Paint DEBUG_DRAW_PAINT;
 
@@ -217,58 +212,54 @@ final class CollapsingTextHelper {
 
     void setCollapsedTextAppearance(int resId) {
         TypedArray a = mView.getContext().obtainStyledAttributes(resId,
-                android.support.v7.appcompat.R.styleable.TextAppearance);
-        if (a.hasValue(android.support.v7.appcompat.R.styleable.TextAppearance_android_textColor)) {
+                com.google.android.material.R.styleable.TextAppearance);
+        if (a.hasValue(com.google.android.material.R.styleable.TextAppearance_android_textColor)) {
             mCollapsedTextColor = a.getColorStateList(
-                    android.support.v7.appcompat.R.styleable.TextAppearance_android_textColor);
+                    com.google.android.material.R.styleable.TextAppearance_android_textColor);
         }
-        if (a.hasValue(android.support.v7.appcompat.R.styleable.TextAppearance_android_textSize)) {
+        if (a.hasValue(com.google.android.material.R.styleable.TextAppearance_android_textSize)) {
             mCollapsedTextSize = a.getDimensionPixelSize(
-                    android.support.v7.appcompat.R.styleable.TextAppearance_android_textSize,
+                    com.google.android.material.R.styleable.TextAppearance_android_textSize,
                     (int) mCollapsedTextSize);
         }
         mCollapsedShadowColor = a.getInt(
-                android.support.v7.appcompat.R.styleable.TextAppearance_android_shadowColor, 0);
+                com.google.android.material.R.styleable.TextAppearance_android_shadowColor, 0);
         mCollapsedShadowDx = a.getFloat(
-                android.support.v7.appcompat.R.styleable.TextAppearance_android_shadowDx, 0);
+                com.google.android.material.R.styleable.TextAppearance_android_shadowDx, 0);
         mCollapsedShadowDy = a.getFloat(
-                android.support.v7.appcompat.R.styleable.TextAppearance_android_shadowDy, 0);
+                com.google.android.material.R.styleable.TextAppearance_android_shadowDy, 0);
         mCollapsedShadowRadius = a.getFloat(
-                android.support.v7.appcompat.R.styleable.TextAppearance_android_shadowRadius, 0);
+                com.google.android.material.R.styleable.TextAppearance_android_shadowRadius, 0);
         a.recycle();
 
-        if (Build.VERSION.SDK_INT >= 16) {
-            mCollapsedTypeface = readFontFamilyTypeface(resId);
-        }
+        mCollapsedTypeface = readFontFamilyTypeface(resId);
 
         recalculate();
     }
 
     void setExpandedTextAppearance(int resId) {
         TypedArray a = mView.getContext().obtainStyledAttributes(resId,
-                android.support.v7.appcompat.R.styleable.TextAppearance);
-        if (a.hasValue(android.support.v7.appcompat.R.styleable.TextAppearance_android_textColor)) {
+                com.google.android.material.R.styleable.TextAppearance);
+        if (a.hasValue(com.google.android.material.R.styleable.TextAppearance_android_textColor)) {
             mExpandedTextColor = a.getColorStateList(
-                    android.support.v7.appcompat.R.styleable.TextAppearance_android_textColor);
+                    com.google.android.material.R.styleable.TextAppearance_android_textColor);
         }
-        if (a.hasValue(android.support.v7.appcompat.R.styleable.TextAppearance_android_textSize)) {
+        if (a.hasValue(com.google.android.material.R.styleable.TextAppearance_android_textSize)) {
             mExpandedTextSize = a.getDimensionPixelSize(
-                    android.support.v7.appcompat.R.styleable.TextAppearance_android_textSize,
+                    com.google.android.material.R.styleable.TextAppearance_android_textSize,
                     (int) mExpandedTextSize);
         }
         mExpandedShadowColor = a.getInt(
-                android.support.v7.appcompat.R.styleable.TextAppearance_android_shadowColor, 0);
+                com.google.android.material.R.styleable.TextAppearance_android_shadowColor, 0);
         mExpandedShadowDx = a.getFloat(
-                android.support.v7.appcompat.R.styleable.TextAppearance_android_shadowDx, 0);
+                com.google.android.material.R.styleable.TextAppearance_android_shadowDx, 0);
         mExpandedShadowDy = a.getFloat(
-                android.support.v7.appcompat.R.styleable.TextAppearance_android_shadowDy, 0);
+                com.google.android.material.R.styleable.TextAppearance_android_shadowDy, 0);
         mExpandedShadowRadius = a.getFloat(
-                android.support.v7.appcompat.R.styleable.TextAppearance_android_shadowRadius, 0);
+                com.google.android.material.R.styleable.TextAppearance_android_shadowRadius, 0);
         a.recycle();
 
-        if (Build.VERSION.SDK_INT >= 16) {
-            mExpandedTypeface = readFontFamilyTypeface(resId);
-        }
+        mExpandedTypeface = readFontFamilyTypeface(resId);
 
         recalculate();
     }
@@ -643,7 +634,7 @@ final class CollapsingTextHelper {
     private void setInterpolatedTextSize(float textSize) {
         calculateUsingTextSize(textSize);
         // Use our texture if the scale isn't 1.0
-        mUseTexture = USE_SCALING_TEXTURE && mScale != 1f;
+        mUseTexture = false && mScale != 1f;
         if (mUseTexture) {
             // Make sure we have an expanded texture if needed
             ensureExpandedTexture();
